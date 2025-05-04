@@ -57,14 +57,16 @@ export function calculateNutritionPlan() {
   // Define target weight loss (for calculation purposes)
   const target_weight_loss_kg = 0.5; // Default target of 0.5kg per week for weight loss
   
-  console.log("User Data:", {
+  const userData = {
     height: height_cm,
     weight_kg,
     gender,
     age,
     activityLevel,
     goal
-  });
+  };
+  
+  console.log("User Data:", userData);
   
   // Calculate BMR using updated formula
   let bmr = 0;
@@ -116,6 +118,15 @@ export function calculateNutritionPlan() {
   const carbs_cal = targetCalories - (protein_cal + fat_cal);
   const carbs_g = Math.max(0, Math.round(carbs_cal / 4)); // Ensure not negative
   
+  const macros = {
+    proteinG: protein_g,
+    fatG: fat_g,
+    carbsG: carbs_g,
+    proteinCal: protein_cal,
+    fatCal: fat_cal,
+    carbsCal: carbs_cal
+  };
+  
   console.log("Macros (g):", {
     protein: protein_g,
     fat: fat_g,
@@ -131,6 +142,16 @@ export function calculateNutritionPlan() {
   // Convert weight change to lbs for display (if needed)
   const weightChangeLbs = weightChangePerWeek * 2.205;
   
+  // Collect debug logs
+  const debugLogs = {
+    userData,
+    bmr,
+    tdee,
+    targetCalories,
+    weightChangePerWeek,
+    macros
+  };
+  
   // Final plan to return
   return {
     calories: Math.round(targetCalories),
@@ -139,6 +160,8 @@ export function calculateNutritionPlan() {
     fats: fat_g,
     weightChange: Math.abs(Math.round(weightChangeLbs * 10) / 10), // Round to 1 decimal place
     goalType: goal,
-    targetDate: calculateTargetDate()
+    targetDate: calculateTargetDate(),
+    debugLogs // Include debug logs in the returned object
   };
 }
+

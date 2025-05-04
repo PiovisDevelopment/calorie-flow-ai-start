@@ -14,11 +14,27 @@ interface NutritionPlan {
   weightChange: number;
   goalType: string;
   targetDate: string;
+  debugLogs?: {
+    userData: any;
+    bmr: number;
+    tdee: number;
+    targetCalories: number;
+    weightChangePerWeek: number;
+    macros: {
+      proteinG: number;
+      fatG: number;
+      carbsG: number;
+      proteinCal: number;
+      fatCal: number;
+      carbsCal: number;
+    };
+  };
 }
 
 const CustomPlanForm = () => {
   const navigate = useNavigate();
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
   
   useEffect(() => {
     // Calculate nutrition plan when component mounts
@@ -172,6 +188,47 @@ const CustomPlanForm = () => {
           </div>
         </div>
         
+        <div className="w-full mt-4 mb-6">
+          <Button 
+            onClick={() => setShowDebug(!showDebug)}
+            variant="outline"
+            className="w-full text-xs"
+          >
+            {showDebug ? "Hide Calculation Details" : "Show Calculation Details"}
+          </Button>
+          
+          {showDebug && plan.debugLogs && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+              <h3 className="font-bold mb-2">Debug Logs:</h3>
+              
+              <div className="mb-2">
+                <p className="font-bold">User Data:</p>
+                <p>Height: {plan.debugLogs.userData.height} cm</p>
+                <p>Weight: {plan.debugLogs.userData.weight_kg} kg</p>
+                <p>Gender: {plan.debugLogs.userData.gender}</p>
+                <p>Age: {plan.debugLogs.userData.age}</p>
+                <p>Activity Level: {plan.debugLogs.userData.activityLevel}</p>
+                <p>Goal: {plan.debugLogs.userData.goal}</p>
+              </div>
+              
+              <div className="mb-2">
+                <p className="font-bold">Calculations:</p>
+                <p>BMR: {Math.round(plan.debugLogs.bmr)} kcal</p>
+                <p>TDEE: {Math.round(plan.debugLogs.tdee)} kcal</p>
+                <p>Target Calories: {Math.round(plan.debugLogs.targetCalories)} kcal</p>
+                <p>Weight Change/Week: {plan.debugLogs.weightChangePerWeek.toFixed(2)} kg</p>
+              </div>
+              
+              <div>
+                <p className="font-bold">Macronutrients:</p>
+                <p>Protein: {plan.debugLogs.macros.proteinG}g ({plan.debugLogs.macros.proteinCal} kcal)</p>
+                <p>Fat: {plan.debugLogs.macros.fatG}g ({plan.debugLogs.macros.fatCal} kcal)</p>
+                <p>Carbs: {plan.debugLogs.macros.carbsG}g ({plan.debugLogs.macros.carbsCal} kcal)</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
         <div className="w-full mt-auto">
           <Button 
             onClick={handleGetStarted}
@@ -186,3 +243,4 @@ const CustomPlanForm = () => {
 };
 
 export default CustomPlanForm;
+
