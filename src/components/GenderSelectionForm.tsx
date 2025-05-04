@@ -29,8 +29,8 @@ const GenderSelectionForm = () => {
       localStorage.setItem("userGender", selectedGender);
     }
     
-    // Navigate to next onboarding page
-    navigate("/onboarding/step5");
+    // Navigate to birthdate page
+    navigate("/onboarding/birthdate");
   };
   
   return (
