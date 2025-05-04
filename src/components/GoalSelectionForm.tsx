@@ -4,33 +4,33 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type FrequencyOption = "0-2" | "3-5" | "6+";
+type GoalOption = "lose weight" | "maintain" | "gain weight";
 
-const WorkoutFrequencyForm = () => {
+const GoalSelectionForm = () => {
   const navigate = useNavigate();
   
-  const [selectedFrequency, setSelectedFrequency] = useState<FrequencyOption | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<GoalOption | null>(null);
   
   // Load saved data from localStorage if available
   useEffect(() => {
-    const savedFrequency = localStorage.getItem("workoutFrequency");
-    if (savedFrequency && ["0-2", "3-5", "6+"].includes(savedFrequency)) {
-      setSelectedFrequency(savedFrequency as FrequencyOption);
+    const savedGoal = localStorage.getItem("userGoal");
+    if (savedGoal && ["lose weight", "maintain", "gain weight"].includes(savedGoal)) {
+      setSelectedGoal(savedGoal as GoalOption);
     }
   }, []);
   
-  const handleFrequencySelect = (frequency: FrequencyOption) => {
-    setSelectedFrequency(frequency);
+  const handleGoalSelect = (goal: GoalOption) => {
+    setSelectedGoal(goal);
   };
   
   const handleContinue = () => {
     // Save data to localStorage
-    if (selectedFrequency) {
-      localStorage.setItem("workoutFrequency", selectedFrequency);
+    if (selectedGoal) {
+      localStorage.setItem("userGoal", selectedGoal);
     }
     
-    // Navigate to goal selection page
-    navigate("/onboarding/goal");
+    // Navigate to next onboarding page
+    navigate("/onboarding/step5");
   };
   
   return (
@@ -39,7 +39,7 @@ const WorkoutFrequencyForm = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate("/onboarding/step3")}
+          onClick={() => navigate("/onboarding/step4")}
           className="p-0 h-auto"
         >
           <ChevronLeft className="h-6 w-6" />
@@ -48,29 +48,28 @@ const WorkoutFrequencyForm = () => {
       
       <div className="flex flex-col w-full max-w-md mx-auto">
         <h1 className="text-3xl font-bold rubik mb-2">
-          How many workouts do you do per week?
+          What is your goal?
         </h1>
         <p className="text-gray-500 mb-10">
-          This will be used to calibrate your custom plan.
+          This helps us generate a plan for your calorie intake.
         </p>
         
         <div className="space-y-4">
           {[
-            { value: "0-2", label: "Workouts now and then" },
-            { value: "3-5", label: "A few workouts per week" },
-            { value: "6+", label: "Dedicated athlete" }
+            { value: "lose weight", label: "Lose weight" },
+            { value: "maintain", label: "Maintain" },
+            { value: "gain weight", label: "Gain weight" }
           ].map((option) => (
             <button
               key={option.value}
-              onClick={() => handleFrequencySelect(option.value as FrequencyOption)}
+              onClick={() => handleGoalSelect(option.value as GoalOption)}
               className={`w-full p-6 text-left rounded-xl transition-all ${
-                selectedFrequency === option.value
+                selectedGoal === option.value
                   ? "border-2 border-black"
                   : "border border-gray-200"
               } bg-[#F1F1F1] hover:bg-gray-100`}
             >
-              <div className="text-lg font-medium">{option.value}</div>
-              <div className="text-gray-500">{option.label}</div>
+              <div className="text-lg font-medium">{option.label}</div>
             </button>
           ))}
         </div>
@@ -79,7 +78,7 @@ const WorkoutFrequencyForm = () => {
           <Button 
             onClick={handleContinue}
             className="w-full py-6 text-lg font-medium rounded-xl bg-[#FACC15] text-black hover:bg-[#F59E0B]"
-            disabled={!selectedFrequency}
+            disabled={!selectedGoal}
           >
             Continue
           </Button>
@@ -89,4 +88,4 @@ const WorkoutFrequencyForm = () => {
   );
 };
 
-export default WorkoutFrequencyForm;
+export default GoalSelectionForm;
