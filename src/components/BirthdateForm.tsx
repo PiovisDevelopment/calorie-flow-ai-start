@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -61,8 +60,8 @@ const BirthdateForm = () => {
     localStorage.setItem("userBirthDay", day);
     localStorage.setItem("userBirthYear", year);
     
-    // Navigate to next onboarding page
-    navigate("/onboarding/step5");
+    // Navigate to custom plan page instead of step5
+    navigate("/onboarding/custom-plan");
   };
   
   // Check if all fields are filled to enable the continue button
