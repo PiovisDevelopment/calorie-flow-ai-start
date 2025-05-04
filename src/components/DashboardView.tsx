@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -383,7 +382,7 @@ const DashboardView = () => {
         <Button
           onClick={handleOpenCamera}
           variant="default"
-          className="h-16 w-16 rounded-full shadow-lg bg-red-600 hover:bg-red-700 flex items-center justify-center"
+          className="h-16 w-16 rounded-full shadow-lg bg-black hover:bg-black/90 flex items-center justify-center"
         >
           <Camera className="h-8 w-8 text-white" />
         </Button>
@@ -391,7 +390,7 @@ const DashboardView = () => {
       
       {/* Bottom Navigation - Centered in the max-width container */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="max-w-md mx-auto flex justify-around items-center p-3">
+        <div className="max-w-md mx-auto flex justify-evenly items-center p-3">
           <Button variant="ghost" className="flex flex-col items-center p-1">
             <Home className="h-5 w-5" />
             <span className="text-xs mt-1">Home</span>
@@ -400,7 +399,7 @@ const DashboardView = () => {
             <LineChart className="h-5 w-5" />
             <span className="text-xs mt-1">Progress</span>
           </Button>
-          <div className="flex">
+          <div className="flex space-x-4">
             <Button variant="ghost" className="flex flex-col items-center p-1">
               <Settings className="h-5 w-5" />
               <span className="text-xs mt-1">Settings</span>
