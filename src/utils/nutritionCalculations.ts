@@ -52,31 +52,32 @@ export function calculateNutritionPlan() {
   // Convert units
   const height_cm = convertHeight(heightStr);
   const weight_kg = convertWeight(weightStr);
-  const weight_lbs = weight_kg * 2.205; // Convert kg to lbs for macros calculation
   const age = calculateAge(birthYear, birthMonth, birthDay);
+  
+  // Define target weight loss (for calculation purposes)
+  const target_weight_loss_kg = 0.5; // Default target of 0.5kg per week for weight loss
   
   console.log("User Data:", {
     height: height_cm,
     weight_kg,
-    weight_lbs,
     gender,
     age,
     activityLevel,
     goal
   });
   
-  // Calculate BMR using Mifflin-St Jeor Formula
+  // Calculate BMR using updated formula
   let bmr = 0;
   if (gender === "male") {
-    bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age + 5;
+    bmr = 10 * weight_kg + 6.2 * height_cm - 5 * age + 5;
   } else {
-    bmr = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161;
+    bmr = 10 * weight_kg + 6.2 * height_cm - 5 * age - 161;
   }
   
   console.log("BMR:", bmr);
   
-  // Apply activity factor to get TDEE
-  let activityFactor = 1.2; // Default
+  // Apply activity factor
+  let activityFactor = 1.2; // Default for 0-2 workouts
   if (activityLevel === "3-5") {
     activityFactor = 1.375;
   } else if (activityLevel === "6+") {
@@ -84,36 +85,36 @@ export function calculateNutritionPlan() {
   }
   
   let tdee = bmr * activityFactor;
-  console.log("TDEE (before goal adjustment):", tdee);
+  console.log("TDEE:", tdee);
   
   // Apply goal adjustment
-  let adjustedTDEE = tdee;
+  let targetCalories = tdee;
   let weightChangePerWeek = 0;
   
   if (goal === "lose weight") {
-    adjustedTDEE = tdee * 0.8;
-    // Calculate approximate weight loss per week (3500 kcal deficit = 1 lb loss)
-    const dailyDeficit = tdee - adjustedTDEE;
-    weightChangePerWeek = (dailyDeficit * 7) / 3500;
+    // Calculate deficit based on target weight loss
+    const dailyDeficit = (target_weight_loss_kg * 7700) / 7; // 7700 calories per kg, divided by 7 days
+    targetCalories = tdee - dailyDeficit;
+    weightChangePerWeek = target_weight_loss_kg;
   } else if (goal === "gain weight") {
-    adjustedTDEE = tdee * 1.15;
-    // Calculate approximate weight gain per week (3500 kcal surplus = 1 lb gain)
-    const dailySurplus = adjustedTDEE - tdee;
-    weightChangePerWeek = (dailySurplus * 7) / 3500;
+    targetCalories = tdee * 1.15;
+    // Calculate approximate weight gain per week
+    const dailySurplus = targetCalories - tdee;
+    weightChangePerWeek = (dailySurplus * 7) / 7700; // 7700 calories per kg
   }
   
-  console.log("Adjusted TDEE:", adjustedTDEE);
-  console.log("Projected weight change per week (lbs):", weightChangePerWeek);
+  console.log("Target Calories:", targetCalories);
+  console.log("Projected weight change per week (kg):", weightChangePerWeek);
   
-  // Calculate macronutrients
-  const protein_g = Math.round(weight_lbs * 1.0);
+  // Calculate macronutrients based on kg
+  const protein_g = Math.round(2.2 * weight_kg);
   const protein_cal = protein_g * 4;
   
-  const fat_g = Math.round(weight_lbs * 0.4);
+  const fat_g = Math.round(0.88 * weight_kg);
   const fat_cal = fat_g * 9;
   
-  const carbs_cal = adjustedTDEE - (protein_cal + fat_cal);
-  const carbs_g = Math.round(carbs_cal / 4);
+  const carbs_cal = targetCalories - (protein_cal + fat_cal);
+  const carbs_g = Math.max(0, Math.round(carbs_cal / 4)); // Ensure not negative
   
   console.log("Macros (g):", {
     protein: protein_g,
@@ -127,13 +128,16 @@ export function calculateNutritionPlan() {
     carbs: carbs_cal
   });
   
+  // Convert weight change to lbs for display (if needed)
+  const weightChangeLbs = weightChangePerWeek * 2.205;
+  
   // Final plan to return
   return {
-    calories: Math.round(adjustedTDEE),
+    calories: Math.round(targetCalories),
     carbs: carbs_g,
     protein: protein_g,
     fats: fat_g,
-    weightChange: Math.abs(Math.round(weightChangePerWeek * 10) / 10), // Round to 1 decimal place
+    weightChange: Math.abs(Math.round(weightChangeLbs * 10) / 10), // Round to 1 decimal place
     goalType: goal,
     targetDate: calculateTargetDate()
   };
