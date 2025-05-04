@@ -10,9 +10,7 @@ const WelcomeScreen = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen bg-white p-6">
-      <div className="flex-1"></div>
-      
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6">
       <div className="flex flex-col items-center justify-center gap-8 w-full max-w-md">
         <div className="relative w-full aspect-square max-w-xs overflow-hidden rounded-3xl">
           <img
@@ -30,15 +28,15 @@ const WelcomeScreen = () => {
             Scan your food. Get your custom plan.
           </p>
         </div>
-      </div>
-      
-      <div className="w-full mt-12 mb-6">
-        <Button 
-          onClick={handleGetStarted}
-          className="w-full py-6 text-lg font-semibold rubik"
-        >
-          Get Started
-        </Button>
+        
+        <div className="w-full mt-6">
+          <Button 
+            onClick={handleGetStarted}
+            className="w-full py-6 text-lg font-semibold rubik"
+          >
+            Get Started
+          </Button>
+        </div>
       </div>
     </div>
   );
