@@ -14,6 +14,7 @@ import GenderSelectionPage from "./pages/GenderSelectionPage";
 import BirthdatePage from "./pages/BirthdatePage";
 import CustomPlanPage from "./pages/CustomPlanPage";
 import Dashboard from "./pages/Dashboard";
+import ResultsPage from "./pages/ResultsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/onboarding/custom-plan" element={<CustomPlanPage />} />
           <Route path="/onboarding/step5" element={<OnboardingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/results" element={<ResultsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

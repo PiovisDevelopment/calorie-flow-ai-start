@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, LineChart, Settings, Camera, CircleDot } from "lucide-react";
+import { Home, LineChart, Settings, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface NutritionPlan {
   calories: number;
@@ -15,27 +16,47 @@ interface LoggedItem {
   id: string;
   name: string;
   calories: number;
+  carbs: number;
+  protein: number;
+  fats: number;
+  description?: string;
+  health_suggestion?: string;
   timestamp: string;
   imageUrl?: string;
 }
 
+interface DailyLogs {
+  [date: string]: LoggedItem[];
+}
+
 const DashboardView = () => {
+  const navigate = useNavigate();
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null);
   const [consumed, setConsumed] = useState({ calories: 0, carbs: 0, protein: 0, fats: 0 });
   const [recentItems, setRecentItems] = useState<LoggedItem[]>([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [showCamera, setShowCamera] = useState(false);
+  const [foodLogs, setFoodLogs] = useState<DailyLogs>({});
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  // Days of the week for the calendar
-  const weekDays = [
-    { letter: "M", day: 1, date: 14 },
-    { letter: "T", day: 2, date: 15 },
-    { letter: "W", day: 3, date: 16 },
-    { letter: "T", day: 4, date: 17 },
-    { letter: "F", day: 5, date: 18 },
-    { letter: "S", day: 6, date: 19 },
-    { letter: "S", day: 0, date: 20 }
-  ];
+  // Generate week days dynamically based on selected date
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(selectedDate);
+    date.setDate(date.getDate() - date.getDay() + i);
+    return {
+      letter: ["S", "M", "T", "W", "T", "F", "S"][i],
+      day: i,
+      date: date.getDate(),
+      fullDate: new Date(date)
+    };
+  });
+  
+  // Format date for localStorage key
+  const formatDateKey = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
   
   // Calculate remaining macros
   const remaining = {
@@ -45,28 +66,44 @@ const DashboardView = () => {
     fats: nutritionPlan ? nutritionPlan.fats - consumed.fats : 0
   };
   
-  // Load nutrition plan from localStorage
+  // Load nutrition plan and food logs from localStorage
   useEffect(() => {
+    // Load nutrition plan
     const planData = localStorage.getItem("userNutritionPlan");
     if (planData) {
       setNutritionPlan(JSON.parse(planData));
     }
     
-    // Mock data for consumed and recent items
-    setConsumed({ calories: 724, carbs: 50, protein: 75, fats: 25 });
-    setRecentItems([
-      { 
-        id: "1", 
-        name: "Grocery Basket", 
-        calories: 450, 
-        timestamp: "11:30",
-        imageUrl: "/lovable-uploads/3ea8dc86-3df2-4f4d-8d14-db82db158c9b.png" 
-      }
-    ]);
+    // Load food logs
+    const logsData = localStorage.getItem("foodLogs");
+    if (logsData) {
+      setFoodLogs(JSON.parse(logsData));
+    }
   }, []);
   
-  const handleDaySelect = (day: number) => {
+  // Update consumed values and recent items when selectedDate or foodLogs change
+  useEffect(() => {
+    const dateKey = formatDateKey(selectedDate);
+    const todaysLogs = foodLogs[dateKey] || [];
+    
+    // Calculate consumed values for selected date
+    const dailyConsumed = todaysLogs.reduce((total, item) => {
+      return {
+        calories: total.calories + (item.calories || 0),
+        carbs: total.carbs + (item.carbs || 0),
+        protein: total.protein + (item.protein || 0),
+        fats: total.fats + (item.fats || 0)
+      };
+    }, { calories: 0, carbs: 0, protein: 0, fats: 0 });
+    
+    setConsumed(dailyConsumed);
+    setRecentItems(todaysLogs.slice(0, 5));
+    
+  }, [selectedDate, foodLogs]);
+  
+  const handleDaySelect = (day: number, date: Date) => {
     setSelectedDay(day);
+    setSelectedDate(date);
   };
   
   const handleOpenCamera = () => {
@@ -75,11 +112,63 @@ const DashboardView = () => {
   
   const handleCloseCamera = () => {
     setShowCamera(false);
+    setImagePreview(null);
   };
   
-  const handleTakePhoto = () => {
-    alert("Photo taken! This would process the image for food recognition in a real app.");
-    setShowCamera(false);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setImagePreview(event.target.result as string);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleAnalyzeImage = async () => {
+    if (!imagePreview) return;
+    
+    try {
+      setIsProcessing(true);
+      
+      // Convert base64 to blob for API call
+      const base64Response = await fetch(imagePreview);
+      const blob = await base64Response.blob();
+      
+      // Make API request
+      const response = await fetch("http://localhost:5678/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+        method: "POST",
+        body: blob
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to analyze image");
+      }
+      
+      const data = await response.json();
+      
+      // Navigate to results page with the data
+      navigate("/results", { 
+        state: { 
+          result: {
+            ...data.output,
+            image: imagePreview
+          }
+        } 
+      });
+      
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      alert("Failed to analyze image. Please try again.");
+    } finally {
+      setIsProcessing(false);
+      setShowCamera(false);
+    }
   };
   
   return (
@@ -95,8 +184,8 @@ const DashboardView = () => {
           <div className="flex space-x-2 overflow-x-auto mx-2">
             {weekDays.map((day) => (
               <div 
-                key={day.letter}
-                onClick={() => handleDaySelect(day.day)}
+                key={day.letter + day.date}
+                onClick={() => handleDaySelect(day.day, day.fullDate)}
                 className={`flex flex-col items-center justify-center w-8 h-8 rounded-full text-xs cursor-pointer
                   ${selectedDay === day.day 
                     ? "bg-black text-white" 
@@ -125,13 +214,22 @@ const DashboardView = () => {
         <Card className="w-full shadow-sm rounded-xl mb-4 overflow-hidden">
           <div className="p-6 flex items-center justify-between">
             <div>
-              <h1 className="text-5xl font-bold">724</h1>
-              <p className="text-gray-600">Calories over</p>
+              <h1 className="text-5xl font-bold">{consumed.calories}</h1>
+              <p className="text-gray-600">Calories consumed</p>
             </div>
             <div className="relative w-20 h-20">
               <svg className="w-full h-full" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" stroke="#f3f3f3" strokeWidth="2"></circle>
-                <circle cx="18" cy="18" r="16" fill="none" stroke="#000" strokeWidth="2" strokeDasharray="100 100" strokeDashoffset="25"></circle>
+                <circle 
+                  cx="18" 
+                  cy="18" 
+                  r="16" 
+                  fill="none" 
+                  stroke="#000" 
+                  strokeWidth="2" 
+                  strokeDasharray="100 100" 
+                  strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.calories / nutritionPlan.calories) * 100) : 25}
+                ></circle>
                 <circle cx="18" cy="18" r="1.5" fill="#000"></circle>
               </svg>
             </div>
@@ -144,8 +242,8 @@ const DashboardView = () => {
           <Card className="shadow-sm rounded-xl overflow-hidden">
             <div className="p-3">
               <div className="text-left">
-                <span className="font-bold">102g</span>
-                <span className="text-sm font-semibold"> Protein left</span>
+                <span className="font-bold">{consumed.protein}g</span>
+                <span className="text-sm font-semibold"> Protein</span>
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
@@ -159,7 +257,7 @@ const DashboardView = () => {
                       stroke="#f87171" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset="25"
+                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.protein / nutritionPlan.protein) * 100) : 25}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#f87171"></circle>
@@ -173,8 +271,8 @@ const DashboardView = () => {
           <Card className="shadow-sm rounded-xl overflow-hidden">
             <div className="p-3">
               <div className="text-left">
-                <span className="font-bold">136g</span>
-                <span className="text-sm font-semibold"> Carbs left</span>
+                <span className="font-bold">{consumed.carbs}g</span>
+                <span className="text-sm font-semibold"> Carbs</span>
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
@@ -188,7 +286,7 @@ const DashboardView = () => {
                       stroke="#fbbf24" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset="40"
+                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.carbs / nutritionPlan.carbs) * 100) : 40}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#fbbf24"></circle>
@@ -202,8 +300,8 @@ const DashboardView = () => {
           <Card className="shadow-sm rounded-xl overflow-hidden">
             <div className="p-3">
               <div className="text-left">
-                <span className="font-bold">35g</span>
-                <span className="text-sm font-semibold"> Fat left</span>
+                <span className="font-bold">{consumed.fats}g</span>
+                <span className="text-sm font-semibold"> Fat</span>
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
@@ -217,7 +315,7 @@ const DashboardView = () => {
                       stroke="#60a5fa" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset="65"
+                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.fats / nutritionPlan.fats) * 100) : 65}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#60a5fa"></circle>
@@ -237,28 +335,34 @@ const DashboardView = () => {
         {/* Recently Logged */}
         <div className="mb-6">
           <h2 className="text-lg font-bold mb-3">Recently logged</h2>
-          <div className="overflow-x-auto flex space-x-4 pb-2">
-            {recentItems.map((item) => (
-              <Card key={item.id} className="shadow-sm rounded-xl min-w-[200px]">
-                <div className="flex items-center p-3">
-                  {item.imageUrl && (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.name}
-                      className="w-12 h-12 rounded-md object-cover mr-3" 
-                    />
-                  )}
-                  <div>
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-sm">{item.calories} kcal</span>
-                      <span className="text-xs text-gray-500">{item.timestamp}</span>
+          {recentItems.length > 0 ? (
+            <div className="overflow-x-auto flex space-x-4 pb-2">
+              {recentItems.map((item) => (
+                <Card key={item.id} className="shadow-sm rounded-xl min-w-[200px]">
+                  <div className="flex items-center p-3">
+                    {item.imageUrl && (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name}
+                        className="w-12 h-12 rounded-md object-cover mr-3" 
+                      />
+                    )}
+                    <div>
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-sm">{item.calories} kcal</span>
+                        <span className="text-xs text-gray-500">{item.timestamp}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-gray-500">
+              No items logged for {selectedDate.toLocaleDateString()}
+            </div>
+          )}
         </div>
       </div>
       
@@ -268,6 +372,14 @@ const DashboardView = () => {
           <Button variant="ghost" className="flex flex-col items-center p-1">
             <Home className="h-5 w-5" />
             <span className="text-xs mt-1">Home</span>
+          </Button>
+          <Button 
+            onClick={handleOpenCamera} 
+            variant="ghost" 
+            className="flex flex-col items-center p-1"
+          >
+            <Camera className="h-5 w-5" />
+            <span className="text-xs mt-1">Camera</span>
           </Button>
           <Button variant="ghost" className="flex flex-col items-center p-1">
             <LineChart className="h-5 w-5" />
@@ -280,37 +392,51 @@ const DashboardView = () => {
         </div>
       </div>
       
-      {/* Floating Action Button - Positioned relative to the center container */}
-      <div className="fixed bottom-20 right-0 left-0 flex justify-center">
-        <div className="max-w-md w-full relative">
-          <Button
-            onClick={handleOpenCamera}
-            className="absolute right-6 w-14 h-14 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center shadow-lg"
-          >
-            <Camera className="h-6 w-6 text-white" />
-          </Button>
-        </div>
-      </div>
-      
       {/* Camera View Modal */}
       {showCamera && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="flex-1 relative">
-            {/* This would be a real camera feed in a production app */}
-            <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-              <p className="text-white">Camera Feed Would Show Here</p>
-            </div>
+            {imagePreview ? (
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="absolute inset-0 h-full w-full object-contain"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+                <p className="text-white">Camera Feed Would Show Here</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0"
+                />
+              </div>
+            )}
           </div>
           <div className="p-4 bg-black flex justify-between">
             <Button variant="outline" onClick={handleCloseCamera} className="text-white border-white">
               Cancel
             </Button>
-            <Button 
-              onClick={handleTakePhoto}
-              className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
-            >
-              <div className="w-14 h-14 rounded-full border-4 border-black"></div>
-            </Button>
+            {imagePreview ? (
+              <Button 
+                onClick={handleAnalyzeImage}
+                disabled={isProcessing}
+                className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
+              >
+                {isProcessing ? (
+                  <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <div className="w-14 h-14 rounded-full border-4 border-black"></div>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
+              >
+                <div className="w-14 h-14 rounded-full border-4 border-black"></div>
+              </Button>
+            )}
             <div className="w-20"></div> {/* Placeholder for layout balance */}
           </div>
         </div>
