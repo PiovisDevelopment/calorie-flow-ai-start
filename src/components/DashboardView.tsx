@@ -273,21 +273,17 @@ const DashboardView = () => {
             <LineChart className="h-5 w-5" />
             <span className="text-xs mt-1">Progress</span>
           </Button>
+          <Button 
+            onClick={handleOpenCamera}
+            variant="ghost" 
+            className="flex flex-col items-center p-1"
+          >
+            <Camera className="h-5 w-5" />
+            <span className="text-xs mt-1">Camera</span>
+          </Button>
           <Button variant="ghost" className="flex flex-col items-center p-1">
             <Settings className="h-5 w-5" />
             <span className="text-xs mt-1">Settings</span>
-          </Button>
-        </div>
-      </div>
-      
-      {/* Floating Action Button - Positioned relative to the center container */}
-      <div className="fixed bottom-20 right-0 left-0 flex justify-center">
-        <div className="max-w-md w-full relative">
-          <Button
-            onClick={handleOpenCamera}
-            className="absolute right-6 w-14 h-14 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center shadow-lg"
-          >
-            <Camera className="h-6 w-6 text-white" />
           </Button>
         </div>
       </div>
