@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import OnboardingPage from "./pages/OnboardingPage";
 import ValuePropositionPage from "./pages/ValuePropositionPage";
+import HeightWeightPage from "./pages/HeightWeightPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,7 +21,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/onboarding" element={<ValuePropositionPage />} />
-          <Route path="/onboarding/step3" element={<OnboardingPage />} />
+          <Route path="/onboarding/step3" element={<HeightWeightPage />} />
+          <Route path="/onboarding/step4" element={<OnboardingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
