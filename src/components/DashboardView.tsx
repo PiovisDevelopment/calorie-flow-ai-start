@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, LineChart, Settings, Camera, LogOut } from "lucide-react";
+import { Home, LineChart, Settings, Camera, LogOut, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -497,22 +497,27 @@ const DashboardView = () => {
       
       {/* Camera View Modal */}
       {showCamera && (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          <div className="flex-1 relative">
+        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
+          <div className="flex-1 relative p-4">
+            <div className="text-white text-center pt-4 pb-6">
+              <h2 className="text-xl font-bold mb-1">Take a photo of your meal</h2>
+              <p className="text-sm text-gray-300">Position your meal in the frame and tap capture</p>
+            </div>
+            
             {imagePreview ? (
               <img 
                 src={imagePreview} 
                 alt="Preview" 
-                className="absolute inset-0 h-full w-full object-contain"
+                className="absolute inset-0 h-full w-full object-contain pt-20 pb-20"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center pt-10 pb-20">
                 <video 
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="h-full w-full object-cover rounded-lg"
                 />
                 <canvas ref={canvasRef} className="hidden" />
                 <input
@@ -524,8 +529,13 @@ const DashboardView = () => {
               </div>
             )}
           </div>
-          <div className="p-4 bg-black flex justify-between">
-            <Button variant="outline" onClick={handleCloseCamera} className="text-white border-white">
+          <div className="p-4 pb-8 flex justify-center space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={handleCloseCamera} 
+              className="bg-white/10 hover:bg-white/20 text-white border-none rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
+            >
+              <X className="h-5 w-5 mr-2" />
               Cancel
             </Button>
             
@@ -533,24 +543,26 @@ const DashboardView = () => {
               <Button 
                 onClick={handleAnalyzeImage}
                 disabled={isProcessing}
-                className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
+                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
               >
                 {isProcessing ? (
-                  <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
                 ) : (
-                  <div className="w-14 h-14 rounded-full border-4 border-black"></div>
+                  <>
+                    <Camera className="h-5 w-5 mr-2" />
+                    Process
+                  </>
                 )}
               </Button>
             ) : (
               <Button 
                 onClick={handleCaptureImage}
-                className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
+                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
               >
-                <div className="w-14 h-14 rounded-full border-4 border-black"></div>
+                <Camera className="h-5 w-5 mr-2" />
+                Capture
               </Button>
             )}
-            
-            <div className="w-20"></div> {/* Placeholder for layout balance */}
           </div>
         </div>
       )}
