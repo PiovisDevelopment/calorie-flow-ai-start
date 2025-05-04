@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, LineChart, Settings, Camera, LogOut } from "lucide-react";
@@ -40,6 +41,9 @@ const DashboardView = () => {
   const [foodLogs, setFoodLogs] = useState<DailyLogs>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   
   // Generate week days dynamically based on selected date
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -106,13 +110,71 @@ const DashboardView = () => {
     setSelectedDate(date);
   };
   
-  const handleOpenCamera = () => {
+  const handleOpenCamera = async () => {
     setShowCamera(true);
+    setImagePreview(null);
+    
+    // We'll start the camera when the modal opens
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          } 
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } else {
+        toast.error("Camera access not available on this device");
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      toast.error("Failed to access camera. Please try again or use file upload.");
+    }
   };
   
   const handleCloseCamera = () => {
+    // Stop the camera stream when closing
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
     setShowCamera(false);
     setImagePreview(null);
+  };
+  
+  const handleCaptureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      
+      // Set canvas dimensions to match video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw the video frame on the canvas
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Get data URL from canvas
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        setImagePreview(imageDataUrl);
+        
+        // Stop the camera stream after capturing
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+      }
+    }
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,7 +226,7 @@ const DashboardView = () => {
       
     } catch (error) {
       console.error("Error analyzing image:", error);
-      alert("Failed to analyze image. Please try again.");
+      toast.error("Failed to analyze image. Please try again.");
     } finally {
       setIsProcessing(false);
       setShowCamera(false);
@@ -180,6 +242,23 @@ const DashboardView = () => {
     
     // Redirect to the onboarding page
     navigate("/onboarding");
+  };
+  
+  // Clean up camera resources when component unmounts
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+  
+  // Helper function to ensure strokeDashoffset is never NaN
+  const calculateStrokeDashOffset = (consumed: number, total: number | undefined): number => {
+    if (!total || isNaN(total) || total === 0) return 25; // Default fallback
+    const percentage = (consumed / total) * 100;
+    return Math.max(0, 100 - percentage);
   };
   
   return (
@@ -239,7 +318,7 @@ const DashboardView = () => {
                   stroke="#000" 
                   strokeWidth="2" 
                   strokeDasharray="100 100" 
-                  strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.calories / nutritionPlan.calories) * 100) : 25}
+                  strokeDashoffset={calculateStrokeDashOffset(consumed.calories, nutritionPlan?.calories)}
                 ></circle>
                 <circle cx="18" cy="18" r="1.5" fill="#000"></circle>
               </svg>
@@ -268,7 +347,7 @@ const DashboardView = () => {
                       stroke="#f87171" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.protein / nutritionPlan.protein) * 100) : 25}
+                      strokeDashoffset={calculateStrokeDashOffset(consumed.protein, nutritionPlan?.protein)}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#f87171"></circle>
@@ -297,7 +376,7 @@ const DashboardView = () => {
                       stroke="#fbbf24" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.carbs / nutritionPlan.carbs) * 100) : 40}
+                      strokeDashoffset={calculateStrokeDashOffset(consumed.carbs, nutritionPlan?.carbs)}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#fbbf24"></circle>
@@ -326,7 +405,7 @@ const DashboardView = () => {
                       stroke="#60a5fa" 
                       strokeWidth="2" 
                       strokeDasharray="100" 
-                      strokeDashoffset={nutritionPlan ? Math.max(0, 100 - (consumed.fats / nutritionPlan.fats) * 100) : 65}
+                      strokeDashoffset={calculateStrokeDashOffset(consumed.fats, nutritionPlan?.fats)}
                       strokeLinecap="round"
                     ></circle>
                     <circle cx="18" cy="18" r="1.5" fill="#60a5fa"></circle>
@@ -428,13 +507,20 @@ const DashboardView = () => {
                 className="absolute inset-0 h-full w-full object-contain"
               />
             ) : (
-              <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                <p className="text-white">Camera Feed Would Show Here</p>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <video 
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <canvas ref={canvasRef} className="hidden" />
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="absolute inset-0 opacity-0"
+                  className="absolute inset-0 opacity-0 z-10"
                 />
               </div>
             )}
@@ -443,6 +529,7 @@ const DashboardView = () => {
             <Button variant="outline" onClick={handleCloseCamera} className="text-white border-white">
               Cancel
             </Button>
+            
             {imagePreview ? (
               <Button 
                 onClick={handleAnalyzeImage}
@@ -457,11 +544,13 @@ const DashboardView = () => {
               </Button>
             ) : (
               <Button 
+                onClick={handleCaptureImage}
                 className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 flex items-center justify-center"
               >
                 <div className="w-14 h-14 rounded-full border-4 border-black"></div>
               </Button>
             )}
+            
             <div className="w-20"></div> {/* Placeholder for layout balance */}
           </div>
         </div>
