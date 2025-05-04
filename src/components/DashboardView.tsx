@@ -199,26 +199,6 @@ const DashboardView = () => {
           <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
         </div>
         
-        {/* Trial Card */}
-        <Card className="shadow-sm rounded-xl mb-6">
-          <div className="p-4 flex justify-between items-center">
-            <div>
-              <div className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium mb-2">
-                80% off
-              </div>
-              <p className="font-semibold">Your trial<br />ends today!!</p>
-            </div>
-            <div className="flex items-center">
-              <div className="text-gray-400 text-xs mr-3">
-                23 : 56 : 43
-              </div>
-              <Button className="bg-black text-white text-xs py-1 px-3 h-auto rounded-full">
-                Resubscribe now
-              </Button>
-            </div>
-          </div>
-        </Card>
-        
         {/* Recently Logged */}
         <div className="mb-6">
           <h2 className="text-lg font-bold mb-3">Recently logged</h2>
