@@ -211,68 +211,75 @@ const DashboardView = () => {
       
       // Make API request to the webhook URL with proper content type
       console.log("Sending request to webhook...");
-      const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ image: base64Data })
-      });
       
-      if (!response.ok) {
-        console.error(`API returned status: ${response.status}`);
-        throw new Error("Failed to analyze image");
+      try {
+        const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ image: base64Data })
+        });
+
+        // Check for a successful response
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Response:', data);
+        
+        // Navigate to results page with the data
+        navigate("/results", { 
+          state: { 
+            result: {
+              ...data.output,
+              image: imagePreview
+            }
+          } 
+        });
+        
+      } catch (error) {
+        console.error('Error in sending webhook:', error);
+        
+        // Create mock data for testing when the API is unavailable
+        const mockData = {
+          description: "This appears to be a healthy meal with vegetables and protein.",
+          health_suggestion: "This is a balanced meal with good nutritional value.",
+          calories: 450,
+          carbs: 35,
+          protein: 25,
+          fats: 15
+        };
+        
+        // Show error toast but provide fallback option
+        toast.error(
+          <div>
+            <p>Failed to connect to image analysis service.</p>
+            <Button 
+              onClick={() => {
+                navigate("/results", { 
+                  state: { 
+                    result: {
+                      ...mockData,
+                      image: imagePreview
+                    }
+                  } 
+                });
+              }}
+              variant="outline" 
+              className="mt-2 w-full"
+            >
+              Continue with estimated values
+            </Button>
+          </div>, 
+          { duration: 10000 }
+        );
       }
-      
-      console.log("Received successful response from webhook");
-      const data = await response.json();
-      
-      // Navigate to results page with the data
-      navigate("/results", { 
-        state: { 
-          result: {
-            ...data.output,
-            image: imagePreview
-          }
-        } 
-      });
       
     } catch (error) {
       console.error("Error analyzing image:", error);
-      
-      // Create mock data for testing when the API is unavailable
-      const mockData = {
-        description: "This appears to be a healthy meal with vegetables and protein.",
-        health_suggestion: "This is a balanced meal with good nutritional value.",
-        calories: 450,
-        carbs: 35,
-        protein: 25,
-        fats: 15
-      };
-      
-      // Show error toast but provide fallback option
-      toast.error(
-        <div>
-          <p>Failed to connect to image analysis service.</p>
-          <Button 
-            onClick={() => {
-              navigate("/results", { 
-                state: { 
-                  result: {
-                    ...mockData,
-                    image: imagePreview
-                  }
-                } 
-              });
-            }}
-            variant="outline" 
-            className="mt-2 w-full"
-          >
-            Continue with estimated values
-          </Button>
-        </div>, 
-        { duration: 10000 }
-      );
+      toast.error("Failed to process image. Please try again.");
     } finally {
       setIsProcessing(false);
       setShowCamera(false);
