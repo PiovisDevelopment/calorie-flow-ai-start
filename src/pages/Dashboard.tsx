@@ -1,22 +1,22 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import WelcomeScreen from "@/components/WelcomeScreen";
+import DashboardView from "@/components/DashboardView";
 
-const Index = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem("userLoggedIn");
     
-    // If logged in, redirect to dashboard
-    if (isLoggedIn) {
-      navigate("/dashboard");
+    // If not logged in, redirect to welcome page
+    if (!isLoggedIn) {
+      navigate("/");
     }
   }, [navigate]);
   
-  return <WelcomeScreen />;
+  return <DashboardView />;
 };
 
-export default Index;
+export default Dashboard;

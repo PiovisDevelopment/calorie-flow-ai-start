@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Check, Flame, Wheat, Drumstick, Droplet, Pencil } from "lucide-react";
@@ -65,8 +64,11 @@ const CustomPlanForm = () => {
     // Save plan to localStorage for future reference
     localStorage.setItem("userNutritionPlan", JSON.stringify(plan));
     
-    // For now, just alert that we're done (this would navigate to dashboard in a real app)
-    alert("Custom plan created! This would navigate to the main dashboard.");
+    // Set logged in state
+    localStorage.setItem("userLoggedIn", "true");
+    
+    // Navigate to dashboard
+    navigate("/dashboard");
   };
   
   return (
@@ -243,4 +245,3 @@ const CustomPlanForm = () => {
 };
 
 export default CustomPlanForm;
-
