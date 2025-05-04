@@ -1,8 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
-import { toast } from "sonner";
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();
@@ -11,32 +9,8 @@ const WelcomeScreen = () => {
     navigate("/onboarding");
   };
 
-  const handleLogout = () => {
-    // Clear all localStorage data
-    localStorage.clear();
-    
-    // Show toast notification
-    toast.success("Logged out successfully");
-    
-    // Redirect to the first tutorial page
-    navigate("/onboarding");
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6 relative">
-      {/* Logout button in top right corner */}
-      <div className="absolute top-4 right-4">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={handleLogout}
-          className="rounded-full"
-          title="Logout"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
-      </div>
-      
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6">
       <div className="flex flex-col items-center justify-center gap-8 w-full max-w-md">
         <div className="relative w-full aspect-square max-w-xs overflow-hidden rounded-3xl">
           <img

@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, LineChart, Settings, Camera } from "lucide-react";
+import { Home, LineChart, Settings, Camera, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface NutritionPlan {
   calories: number;
@@ -169,6 +169,17 @@ const DashboardView = () => {
       setIsProcessing(false);
       setShowCamera(false);
     }
+  };
+  
+  const handleLogout = () => {
+    // Clear all localStorage data
+    localStorage.clear();
+    
+    // Show toast notification
+    toast.success("Logged out successfully");
+    
+    // Redirect to the onboarding page
+    navigate("/onboarding");
   };
   
   return (
@@ -385,10 +396,21 @@ const DashboardView = () => {
             <LineChart className="h-5 w-5" />
             <span className="text-xs mt-1">Progress</span>
           </Button>
-          <Button variant="ghost" className="flex flex-col items-center p-1">
-            <Settings className="h-5 w-5" />
-            <span className="text-xs mt-1">Settings</span>
-          </Button>
+          <div className="flex">
+            <Button variant="ghost" className="flex flex-col items-center p-1">
+              <Settings className="h-5 w-5" />
+              <span className="text-xs mt-1">Settings</span>
+            </Button>
+            <Button 
+              onClick={handleLogout}
+              variant="ghost" 
+              className="flex flex-col items-center p-1"
+              title="Logout"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs mt-1">Logout</span>
+            </Button>
+          </div>
         </div>
       </div>
       
