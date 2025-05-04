@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, LineChart, Settings, Camera } from "lucide-react";
+import { Home, LineChart, Settings, Camera, CircleDot } from "lucide-react";
 
 interface NutritionPlan {
   calories: number;
@@ -118,7 +118,7 @@ const DashboardView = () => {
         </div>
       </div>
       
-      <div className="flex-1 px-4 py-2">
+      <div className="flex-1 px-4 py-2 max-w-md mx-auto w-full">
         {/* Calorie Summary Card */}
         <Card className="w-full shadow-sm rounded-xl mb-4 overflow-hidden">
           <div className="p-6 flex items-center justify-between">
@@ -130,7 +130,7 @@ const DashboardView = () => {
               <svg className="w-full h-full" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" stroke="#f3f3f3" strokeWidth="2"></circle>
                 <circle cx="18" cy="18" r="16" fill="none" stroke="#000" strokeWidth="2" strokeDasharray="100 100" strokeDashoffset="25"></circle>
-                <circle cx="18" cy="18" r="1" fill="#000"></circle>
+                <circle cx="18" cy="18" r="1.5" fill="#000"></circle>
               </svg>
             </div>
           </div>
@@ -147,9 +147,20 @@ const DashboardView = () => {
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="16" fill="none" stroke="#f3f3f3" strokeWidth="2"></circle>
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#f87171" strokeWidth="2" strokeDasharray="100 100" strokeDashoffset="25"></circle>
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#f87171" 
+                      strokeWidth="2" 
+                      strokeDasharray="100" 
+                      strokeDashoffset="25"
+                      strokeLinecap="round"
+                    ></circle>
+                    <circle cx="18" cy="18" r="1.5" fill="#f87171"></circle>
                   </svg>
                 </div>
               </div>
@@ -165,9 +176,20 @@ const DashboardView = () => {
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="16" fill="none" stroke="#f3f3f3" strokeWidth="2"></circle>
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#fbbf24" strokeWidth="2" strokeDasharray="100 100" strokeDashoffset="40"></circle>
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#fbbf24" 
+                      strokeWidth="2" 
+                      strokeDasharray="100" 
+                      strokeDashoffset="40"
+                      strokeLinecap="round"
+                    ></circle>
+                    <circle cx="18" cy="18" r="1.5" fill="#fbbf24"></circle>
                   </svg>
                 </div>
               </div>
@@ -183,9 +205,20 @@ const DashboardView = () => {
               </div>
               <div className="flex justify-center mt-2">
                 <div className="relative w-12 h-12">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="16" fill="none" stroke="#f3f3f3" strokeWidth="2"></circle>
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="100 100" strokeDashoffset="65"></circle>
+                    <circle 
+                      cx="18" 
+                      cy="18" 
+                      r="16" 
+                      fill="none" 
+                      stroke="#60a5fa" 
+                      strokeWidth="2" 
+                      strokeDasharray="100" 
+                      strokeDashoffset="65"
+                      strokeLinecap="round"
+                    ></circle>
+                    <circle cx="18" cy="18" r="1.5" fill="#60a5fa"></circle>
                   </svg>
                 </div>
               </div>
