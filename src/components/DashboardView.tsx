@@ -84,37 +84,39 @@ const DashboardView = () => {
   
   return (
     <div className="flex flex-col min-h-screen bg-white pb-16">
-      {/* Top Bar */}
-      <div className="sticky top-0 z-10 bg-white p-4 shadow-sm flex justify-between items-center">
-        <div className="flex items-center">
-          <span className="font-bold text-xl">Cal AI</span>
-        </div>
-        
-        {/* Week Calendar */}
-        <div className="flex space-x-2 overflow-x-auto mx-2">
-          {weekDays.map((day) => (
-            <div 
-              key={day.letter}
-              onClick={() => handleDaySelect(day.day)}
-              className={`flex flex-col items-center justify-center w-8 h-8 rounded-full text-xs cursor-pointer
-                ${selectedDay === day.day 
-                  ? "bg-black text-white" 
-                  : "border border-dashed border-gray-300"}`}
-            >
-              <span>{day.letter}</span>
-              <span>{day.date}</span>
-            </div>
-          ))}
-        </div>
-        
-        {/* Streak Indicator */}
-        <div className="flex items-center">
-          <span className="bg-amber-100 text-amber-800 p-1 px-2 rounded-full flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-1">
-              <path fillRule="evenodd" d="M12 1.5a.75.75 0 01.75.75V4.5a.75.75 0 01-1.5 0V2.25A.75.75 0 0112 1.5zM5.636 4.136a.75.75 0 011.06 0l1.592 1.591a.75.75 0 01-1.061 1.06l-1.591-1.59a.75.75 0 010-1.061zm12.728 0a.75.75 0 010 1.06l-1.591 1.592a.75.75 0 01-1.06-1.061l1.59-1.591a.75.75 0 011.061 0zm-6.816 4.496a.75.75 0 01.82.311l5.228 7.917a.75.75 0 01-.777 1.148l-2.097-.43 1.045 3.9a.75.75 0 01-1.45.388l-1.044-3.899-1.601 1.42a.75.75 0 01-1.247-.606l.569-9.47a.75.75 0 01.554-.68z" clipRule="evenodd" />
-            </svg>
-            1
-          </span>
+      <div className="max-w-md mx-auto w-full">
+        {/* Top Bar */}
+        <div className="sticky top-0 z-10 bg-white p-4 shadow-sm flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="font-bold text-xl">Cal AI</span>
+          </div>
+          
+          {/* Week Calendar */}
+          <div className="flex space-x-2 overflow-x-auto mx-2">
+            {weekDays.map((day) => (
+              <div 
+                key={day.letter}
+                onClick={() => handleDaySelect(day.day)}
+                className={`flex flex-col items-center justify-center w-8 h-8 rounded-full text-xs cursor-pointer
+                  ${selectedDay === day.day 
+                    ? "bg-black text-white" 
+                    : "border border-dashed border-gray-300"}`}
+              >
+                <span>{day.letter}</span>
+                <span>{day.date}</span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Streak Indicator */}
+          <div className="flex items-center">
+            <span className="bg-amber-100 text-amber-800 p-1 px-2 rounded-full flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-1">
+                <path fillRule="evenodd" d="M12 1.5a.75.75 0 01.75.75V4.5a.75.75 0 01-1.5 0V2.25A.75.75 0 0112 1.5zM5.636 4.136a.75.75 0 011.06 0l1.592 1.591a.75.75 0 01-1.061 1.06l-1.591-1.59a.75.75 0 010-1.061zm12.728 0a.75.75 0 010 1.06l-1.591 1.592a.75.75 0 01-1.06-1.061l1.59-1.591a.75.75 0 011.061 0zm-6.816 4.496a.75.75 0 01.82.311l5.228 7.917a.75.75 0 01-.777 1.148l-2.097-.43 1.045 3.9a.75.75 0 01-1.45.388l-1.044-3.899-1.601 1.42a.75.75 0 01-1.247-.606l.569-9.47a.75.75 0 01.554-.68z" clipRule="evenodd" />
+              </svg>
+              1
+            </span>
+          </div>
         </div>
       </div>
       
@@ -260,29 +262,35 @@ const DashboardView = () => {
         </div>
       </div>
       
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center p-3">
-        <Button variant="ghost" className="flex flex-col items-center p-1">
-          <Home className="h-5 w-5" />
-          <span className="text-xs mt-1">Home</span>
-        </Button>
-        <Button variant="ghost" className="flex flex-col items-center p-1">
-          <LineChart className="h-5 w-5" />
-          <span className="text-xs mt-1">Progress</span>
-        </Button>
-        <Button variant="ghost" className="flex flex-col items-center p-1">
-          <Settings className="h-5 w-5" />
-          <span className="text-xs mt-1">Settings</span>
-        </Button>
+      {/* Bottom Navigation - Centered in the max-width container */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div className="max-w-md mx-auto flex justify-around items-center p-3">
+          <Button variant="ghost" className="flex flex-col items-center p-1">
+            <Home className="h-5 w-5" />
+            <span className="text-xs mt-1">Home</span>
+          </Button>
+          <Button variant="ghost" className="flex flex-col items-center p-1">
+            <LineChart className="h-5 w-5" />
+            <span className="text-xs mt-1">Progress</span>
+          </Button>
+          <Button variant="ghost" className="flex flex-col items-center p-1">
+            <Settings className="h-5 w-5" />
+            <span className="text-xs mt-1">Settings</span>
+          </Button>
+        </div>
       </div>
       
-      {/* Floating Action Button */}
-      <Button
-        onClick={handleOpenCamera}
-        className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center shadow-lg"
-      >
-        <Camera className="h-6 w-6 text-white" />
-      </Button>
+      {/* Floating Action Button - Positioned relative to the center container */}
+      <div className="fixed bottom-20 right-0 left-0 flex justify-center">
+        <div className="max-w-md w-full relative">
+          <Button
+            onClick={handleOpenCamera}
+            className="absolute right-6 w-14 h-14 rounded-full bg-black hover:bg-gray-800 flex items-center justify-center shadow-lg"
+          >
+            <Camera className="h-6 w-6 text-white" />
+          </Button>
+        </div>
+      </div>
       
       {/* Camera View Modal */}
       {showCamera && (
