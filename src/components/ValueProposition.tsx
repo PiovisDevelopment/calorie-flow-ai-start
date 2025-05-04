@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { ChevronLeft } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const data = [
   { month: "Month 1", calAI: 100, traditional: 100 },
@@ -51,14 +52,14 @@ const ValueProposition = () => {
         </Button>
       </div>
       
-      <div className="flex flex-col w-full max-w-md mx-auto">
+      <div className="flex flex-col w-full max-w-md mx-auto flex-grow">
         <h1 className="text-3xl font-bold rubik mb-8">
           Cal AI creates<br/>long-term results
         </h1>
         
-        <div className="w-full bg-gray-50 p-4 rounded-xl mb-8">
+        <div className="w-full bg-gray-50 p-4 rounded-xl mb-8 flex-grow flex flex-col">
           <div className="mb-4 text-gray-700 font-medium">Your weight</div>
-          <div className="h-60 w-full">
+          <div className="flex-grow" style={{ minHeight: "240px" }}>
             <ChartContainer
               config={config}
               className="h-full w-full"
@@ -66,7 +67,7 @@ const ValueProposition = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={data}
-                  margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
+                  margin={{ top: 5, right: 5, left: -10, bottom: 20 }}
                 >
                   <defs>
                     <linearGradient id="colorCalAI" x1="0" y1="0" x2="0" y2="1">
@@ -87,6 +88,7 @@ const ValueProposition = () => {
                     ticks={["Month 2", "Month 3", "Month 4", "Month 6"]}
                   />
                   <YAxis hide={true} />
+                  <Separator className="absolute bottom-16 left-0 right-0 w-full opacity-20" />
                   <Area
                     type="monotone"
                     dataKey="calAI"
@@ -120,7 +122,7 @@ const ValueProposition = () => {
             </div>
           </div>
           
-          <p className="text-center text-gray-600 mt-4">
+          <p className="text-center text-gray-600 mt-6 mb-4">
             80% of Cal AI users maintain their weight loss even 6 months later
           </p>
         </div>
