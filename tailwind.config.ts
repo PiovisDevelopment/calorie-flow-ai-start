@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,6 +63,10 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			fontFamily: {
+				manrope: ['Manrope', 'sans-serif'],
+				rubik: ['Rubik', 'sans-serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
