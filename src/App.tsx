@@ -10,6 +10,7 @@ import ValuePropositionPage from "./pages/ValuePropositionPage";
 import HeightWeightPage from "./pages/HeightWeightPage";
 import WorkoutFrequencyPage from "./pages/WorkoutFrequencyPage";
 import GoalSelectionPage from "./pages/GoalSelectionPage";
+import GenderSelectionPage from "./pages/GenderSelectionPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/onboarding/step3" element={<HeightWeightPage />} />
           <Route path="/onboarding/step4" element={<WorkoutFrequencyPage />} />
           <Route path="/onboarding/goal" element={<GoalSelectionPage />} />
+          <Route path="/onboarding/gender" element={<GenderSelectionPage />} />
           <Route path="/onboarding/step5" element={<OnboardingPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
