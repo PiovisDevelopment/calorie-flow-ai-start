@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,8 +201,8 @@ const DashboardView = () => {
       const base64Response = await fetch(imagePreview);
       const blob = await base64Response.blob();
       
-      // Make API request
-      const response = await fetch("http://localhost:5678/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+      // Make API request to the new URL
+      const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
         method: "POST",
         body: blob
       });
