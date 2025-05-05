@@ -163,8 +163,8 @@ const DashboardView = () => {
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Get data URL from canvas
-        const imageDataUrl = canvas.toDataURL('image/jpeg');
+        // Get data URL from canvas - Changed to PNG format
+        const imageDataUrl = canvas.toDataURL('image/png');
         setImagePreview(imageDataUrl);
         
         // Stop the camera stream after capturing
