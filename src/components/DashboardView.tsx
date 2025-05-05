@@ -199,21 +199,21 @@ const DashboardView = () => {
       
       console.log("Starting image analysis...");
       
-      // Get the base64 data without the prefix
-      const base64Data = imagePreview.split(',')[1];
-      const imageSize = Math.round((base64Data.length * 0.75) / 1024); // Approximate size in KB
-      console.log(`Image data size: ${imageSize}KB`);
+      // Convert base64 data URL to Blob for better handling
+      const response = await fetch(imagePreview);
+      const blob = await response.blob();
       
-      console.log("Sending request to webhook...");
+      console.log("Image prepared, sending to webhook...");
+      
+      // Create FormData to send the image
+      const formData = new FormData();
+      formData.append('image', blob, 'food-image.png');
       
       // Send the PNG image to the webhook
       try {
         const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ image: imagePreview })
+          body: formData
         });
         
         if (!response.ok) {
