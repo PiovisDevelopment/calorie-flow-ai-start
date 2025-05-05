@@ -1,9 +1,12 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, LineChart, Settings, Camera, LogOut, X } from "lucide-react";
+import { Home, LineChart, Settings, Camera, LogOut, X, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 interface NutritionPlan {
   calories: number;
@@ -40,6 +43,7 @@ const DashboardView = () => {
   const [foodLogs, setFoodLogs] = useState<DailyLogs>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -47,6 +51,7 @@ const DashboardView = () => {
   // Generate week days dynamically based on selected date
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(selectedDate);
+    // Get to the beginning of the week (Sunday as day 0)
     date.setDate(date.getDate() - date.getDay() + i);
     return {
       letter: ["S", "M", "T", "W", "T", "F", "S"][i],
@@ -107,6 +112,14 @@ const DashboardView = () => {
   const handleDaySelect = (day: number, date: Date) => {
     setSelectedDay(day);
     setSelectedDate(date);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setSelectedDay(date.getDay());
+      setCalendarOpen(false);
+    }
   };
   
   const handleOpenCamera = async () => {
@@ -253,20 +266,19 @@ const DashboardView = () => {
     } catch (error) {
       console.error("Error analyzing image:", error);
       
-      // Show error message and offer to continue with fallback
       toast.error("Failed to analyze image", {
         description: "Would you like to continue with estimated values?",
         action: {
           label: "Continue",
           onClick: () => {
-            // Use fallback data
+            // Fallback data
             const fallbackData = {
-              name: "Unknown Food",
+              description: "This is an estimated analysis as we couldn't process your image.",
+              health_suggestion: "Consider consulting a nutritionist for accurate dietary advice.",
               calories: 250,
               carbs: 30,
               protein: 15,
-              fats: 10,
-              description: "This is an estimated analysis as we couldn't process your image."
+              fats: 10
             };
             
             navigate("/results", { 
@@ -323,21 +335,40 @@ const DashboardView = () => {
             <span className="font-bold text-xl">Cal AI</span>
           </div>
           
-          {/* Week Calendar */}
-          <div className="flex space-x-2 overflow-x-auto mx-2">
-            {weekDays.map((day) => (
-              <div 
-                key={day.letter + day.date}
-                onClick={() => handleDaySelect(day.day, day.fullDate)}
-                className={`flex flex-col items-center justify-center w-8 h-8 rounded-full text-xs cursor-pointer
-                  ${selectedDay === day.day 
-                    ? "bg-black text-white" 
-                    : "border border-dashed border-gray-300"}`}
-              >
-                <span>{day.letter}</span>
-                <span>{day.date}</span>
-              </div>
-            ))}
+          <div className="flex items-center space-x-2">
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
+                  <Calendar className="h-4 w-4" />
+                  <span className="sr-only">Open calendar</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Week Calendar */}
+            <div className="flex space-x-2 overflow-x-auto mx-2">
+              {weekDays.map((day) => (
+                <div 
+                  key={day.letter + day.date}
+                  onClick={() => handleDaySelect(day.day, day.fullDate)}
+                  className={`flex flex-col items-center justify-center w-8 h-8 rounded-full text-xs cursor-pointer
+                    ${selectedDay === day.day 
+                      ? "bg-black text-white" 
+                      : "border border-dashed border-gray-300"}`}
+                >
+                  <span>{day.letter}</span>
+                  <span>{day.date}</span>
+                </div>
+              ))}
+            </div>
           </div>
           
           {/* Streak Indicator */}
@@ -353,6 +384,17 @@ const DashboardView = () => {
       </div>
       
       <div className="flex-1 px-4 py-2 max-w-md mx-auto w-full">
+        {/* Date Display */}
+        <div className="text-center mb-4">
+          <h2 className="text-lg font-medium">
+            {selectedDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </h2>
+        </div>
+        
         {/* Calorie Summary Card */}
         <Card className="w-full shadow-sm rounded-xl mb-4 overflow-hidden">
           <div className="p-6 flex items-center justify-between">
@@ -491,7 +533,9 @@ const DashboardView = () => {
                       />
                     )}
                     <div>
-                      <h3 className="font-semibold">{item.name}</h3>
+                      <h3 className="font-semibold truncate max-w-[130px]">
+                        {item.description ? item.description.split('.')[0] : item.name}
+                      </h3>
                       <div className="flex justify-between mt-1">
                         <span className="text-sm">{item.calories} kcal</span>
                         <span className="text-xs text-gray-500">{item.timestamp}</span>
@@ -550,76 +594,74 @@ const DashboardView = () => {
       </div>
       
       {/* Camera View Modal */}
-      {showCamera && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
-          <div className="flex-1 relative p-4">
-            <div className="text-white text-center pt-4 pb-6">
-              <h2 className="text-xl font-bold mb-1">Take a photo of your meal</h2>
-              <p className="text-sm text-gray-300">Position your meal in the frame and tap capture</p>
-            </div>
-            
-            {imagePreview ? (
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                className="absolute inset-0 h-full w-full object-contain pt-20 pb-20"
+      <div className={`fixed inset-0 bg-black/95 z-50 flex flex-col transition-opacity duration-300 ${showCamera ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="flex-1 relative p-4">
+          <div className="text-white text-center pt-4 pb-6">
+            <h2 className="text-xl font-bold mb-1">Take a photo of your meal</h2>
+            <p className="text-sm text-gray-300">Position your meal in the frame and tap capture</p>
+          </div>
+          
+          {imagePreview ? (
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="absolute inset-0 h-full w-full object-contain pt-20 pb-20"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center pt-10 pb-20">
+              <video 
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="h-full w-full object-cover rounded-lg"
               />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center pt-10 pb-20">
-                <video 
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="h-full w-full object-cover rounded-lg"
-                />
-                <canvas ref={canvasRef} className="hidden" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 opacity-0 z-10"
-                />
-              </div>
-            )}
-          </div>
-          <div className="p-4 pb-8 flex justify-center space-x-4">
-            <Button 
-              variant="outline" 
-              onClick={handleCloseCamera} 
-              className="bg-white/10 hover:bg-white/20 text-white border-none rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
-            >
-              <X className="h-5 w-5 mr-2" />
-              Cancel
-            </Button>
-            
-            {imagePreview ? (
-              <Button 
-                onClick={handleAnalyzeImage}
-                disabled={isProcessing}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
-              >
-                {isProcessing ? (
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
-                ) : (
-                  <>
-                    <Camera className="h-5 w-5 mr-2" />
-                    Process
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleCaptureImage}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
-              >
-                <Camera className="h-5 w-5 mr-2" />
-                Capture
-              </Button>
-            )}
-          </div>
+              <canvas ref={canvasRef} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 opacity-0 z-10"
+              />
+            </div>
+          )}
         </div>
-      )}
+        <div className="p-4 pb-8 flex justify-center space-x-4">
+          <Button 
+            variant="outline" 
+            onClick={handleCloseCamera} 
+            className="bg-white/10 hover:bg-white/20 text-white border-none rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
+          >
+            <X className="h-5 w-5 mr-2" />
+            Cancel
+          </Button>
+          
+          {imagePreview ? (
+            <Button 
+              onClick={handleAnalyzeImage}
+              disabled={isProcessing}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
+            >
+              {isProcessing ? (
+                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+              ) : (
+                <>
+                  <Camera className="h-5 w-5 mr-2" />
+                  Process
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleCaptureImage}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-full py-6 px-8 w-[140px] flex items-center justify-center"
+            >
+              <Camera className="h-5 w-5 mr-2" />
+              Capture
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -31,7 +31,7 @@ const ResultsPage = () => {
   
   const handleSave = () => {
     if (result) {
-      // Get current logs or initialize empty array
+      // Get current logs or initialize empty object
       const existingLogs = JSON.parse(localStorage.getItem("foodLogs") || "{}");
       
       // Get today's date in YYYY-MM-DD format
@@ -43,7 +43,7 @@ const ResultsPage = () => {
         existingLogs[dateKey] = [];
       }
       
-      // Add new log
+      // Add new log with food description as name
       const newLog = {
         id: Date.now().toString(),
         name: "Food Item",
