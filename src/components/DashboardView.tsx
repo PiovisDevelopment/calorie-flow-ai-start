@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -198,88 +197,85 @@ const DashboardView = () => {
     try {
       setIsProcessing(true);
       
+      // Simple log to track execution
       console.log("Starting image analysis...");
       
       // Extract the base64 data without the data URL prefix
       const base64Data = imagePreview.split(',')[1];
       
+      // Simple log to track execution
       console.log("Image prepared as Base64, sending to webhook...");
       
-      // Send the Base64 encoded image to the webhook
-      try {
-        const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          mode: "no-cors", // Add no-cors mode to help with CORS issues
-          body: JSON.stringify({
-            image: base64Data,
-            format: "png",
-            timestamp: new Date().toISOString(),
-            source: "CalAI mobile app"
-          })
-        });
-        
-        console.log("Webhook request sent successfully");
-        
-        // Since no-cors mode doesn't provide response details, we simulate success
-        // and navigate to results page with mock data for testing
-        const mockData = {
-          name: "Analyzed Food",
-          calories: 350,
-          carbs: 45,
-          protein: 20,
-          fats: 12,
-          description: "This is an analysis of your food image."
-        };
-        
-        // Navigate to results page with the analyzed data
-        navigate("/results", { 
-          state: { 
-            result: {
-              ...mockData,
-              image: imagePreview
-            }
-          } 
-        });
-        
-        console.log("Analysis successful, navigating to results page");
-      } catch (error) {
-        console.error("Error in sending webhook:", error);
-        
-        // Show error message and offer to continue with fallback
-        toast.error("Failed to analyze image", {
-          description: "Would you like to continue with estimated values?",
-          action: {
-            label: "Continue",
-            onClick: () => {
-              // Use fallback data
-              const fallbackData = {
-                name: "Unknown Food",
-                calories: 250,
-                carbs: 30,
-                protein: 15,
-                fats: 10,
-                description: "This is an estimated analysis as we couldn't process your image."
-              };
-              
-              navigate("/results", { 
-                state: { 
-                  result: {
-                    ...fallbackData,
-                    image: imagePreview
-                  }
-                } 
-              });
-            }
+      // Send the image to the webhook
+      const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        mode: "no-cors", // Use no-cors to avoid CORS issues
+        body: JSON.stringify({
+          image: base64Data,
+          format: "png",
+          timestamp: new Date().toISOString(),
+          source: "CalAI mobile app"
+        })
+      });
+      
+      // Log success (since with no-cors we can't check response status)
+      console.log("Webhook request sent successfully");
+      
+      // Since no-cors mode doesn't provide response details, we use mock data
+      const mockData = {
+        name: "Analyzed Food",
+        calories: 350,
+        carbs: 45,
+        protein: 20,
+        fats: 12,
+        description: "This is an analysis of your food image."
+      };
+      
+      // Navigate to results page with the analyzed data
+      navigate("/results", { 
+        state: { 
+          result: {
+            ...mockData,
+            image: imagePreview
           }
-        });
-      }
+        } 
+      });
+      
+      console.log("Analysis successful, navigating to results page");
       
     } catch (error) {
       console.error("Error analyzing image:", error);
-      toast.error("Failed to analyze image. Please try again.");
+      
+      // Show error message and offer to continue with fallback
+      toast.error("Failed to analyze image", {
+        description: "Would you like to continue with estimated values?",
+        action: {
+          label: "Continue",
+          onClick: () => {
+            // Use fallback data
+            const fallbackData = {
+              name: "Unknown Food",
+              calories: 250,
+              carbs: 30,
+              protein: 15,
+              fats: 10,
+              description: "This is an estimated analysis as we couldn't process your image."
+            };
+            
+            navigate("/results", { 
+              state: { 
+                result: {
+                  ...fallbackData,
+                  image: imagePreview
+                }
+              } 
+            });
+          }
+        }
+      });
     } finally {
       setIsProcessing(false);
       setShowCamera(false);
