@@ -197,65 +197,66 @@ const DashboardView = () => {
     try {
       setIsProcessing(true);
       
-      // Simple log to track execution
       console.log("Starting image analysis...");
       
-      // Extract the base64 data without the data URL prefix
-      const base64Data = imagePreview.split(',')[1];
-      
-      // Simple log to track execution
-      console.log("Image prepared as Base64, sending to webhook...");
-      
-      // Send the image to the webhook
-      const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        mode: "no-cors", // Use no-cors to avoid CORS issues
-        body: JSON.stringify({
-          image: base64Data,
-          format: "png",
-          timestamp: new Date().toISOString(),
-          source: "CalAI mobile app"
-        })
-      });
-      
-      // Log success (since with no-cors we can't check response status)
-      console.log("Webhook request sent successfully");
-      
-      // Since no-cors mode doesn't provide response details, we use mock data
-      const mockData = {
-        name: "Analyzed Food",
-        calories: 350,
-        carbs: 45,
-        protein: 20,
-        fats: 12,
-        description: "This is an analysis of your food image."
+      // Convert the image preview data URL to a Blob
+      const dataURLToBlob = (dataURL) => {
+        const parts = dataURL.split(';base64,');
+        const contentType = parts[0].split(':')[1];
+        const raw = window.atob(parts[1]);
+        const rawLength = raw.length;
+        const uInt8Array = new Uint8Array(rawLength);
+        
+        for (let i = 0; i < rawLength; ++i) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+        
+        return new Blob([uInt8Array], { type: contentType });
       };
       
-      // Navigate to results page with the analyzed data
+      // Convert to blob
+      const blob = dataURLToBlob(imagePreview);
+      console.log("Blob created:", blob.type, blob.size);
+      
+      // Create FormData
+      const formData = new FormData();
+      formData.append('image', blob, 'food-image.png');
+      
+      console.log("FormData created with image");
+      
+      // IMPORTANT: Notice the webhook URL is using webhook-test instead of webhook
+      // Make sure to use the production URL from your n8n webhook node
+      const response = await fetch("https://n8npro.ngrok.app/webhook-test/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+        method: "POST",
+        body: formData
+        // No headers - let browser handle Content-Type with proper boundary
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Navigate to results page with the data
       navigate("/results", { 
         state: { 
           result: {
-            ...mockData,
+            ...data.output,
             image: imagePreview
           }
         } 
       });
       
       console.log("Analysis successful, navigating to results page");
-      
     } catch (error) {
       console.error("Error analyzing image:", error);
-      
-      // Show error message and offer to continue with fallback
       toast.error("Failed to analyze image", {
         description: "Would you like to continue with estimated values?",
         action: {
           label: "Continue",
           onClick: () => {
-            // Use fallback data
+            // Fallback logic
             const fallbackData = {
               name: "Unknown Food",
               calories: 250,
