@@ -242,6 +242,7 @@ const DashboardView = () => {
       // Send without Content-Type header
       const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
         method: "POST",
+        mode: "no-cors", // Add this line to bypass CORS issues
         body: formData
         // No headers - let browser handle Content-Type with proper boundary
       });
