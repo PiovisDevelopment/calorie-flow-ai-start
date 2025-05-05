@@ -163,7 +163,7 @@ const DashboardView = () => {
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Get data URL from canvas - Changed to PNG format
+        // Get data URL from canvas in PNG format
         const imageDataUrl = canvas.toDataURL('image/png');
         setImagePreview(imageDataUrl);
         
@@ -197,31 +197,73 @@ const DashboardView = () => {
     try {
       setIsProcessing(true);
       
-      // Convert base64 to blob for API call
-      const base64Response = await fetch(imagePreview);
-      const blob = await base64Response.blob();
+      console.log("Starting image analysis...");
       
-      // Make API request to the new URL
-      const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
-        method: "POST",
-        body: blob
-      });
+      // Get the base64 data without the prefix
+      const base64Data = imagePreview.split(',')[1];
+      const imageSize = Math.round((base64Data.length * 0.75) / 1024); // Approximate size in KB
+      console.log(`Image data size: ${imageSize}KB`);
       
-      if (!response.ok) {
-        throw new Error("Failed to analyze image");
-      }
+      console.log("Sending request to webhook...");
       
-      const data = await response.json();
-      
-      // Navigate to results page with the data
-      navigate("/results", { 
-        state: { 
-          result: {
-            ...data.output,
-            image: imagePreview
+      // Send the PNG image to the webhook
+      try {
+        const response = await fetch("https://n8npro.ngrok.app/webhook/ef6ba5e1-6af8-40b9-8617-d6abc6c47331", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ image: imagePreview })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Navigate to results page with the data
+        navigate("/results", { 
+          state: { 
+            result: {
+              ...data.output,
+              image: imagePreview
+            }
+          } 
+        });
+        
+        console.log("Analysis successful, navigating to results page");
+      } catch (error) {
+        console.error("Error in sending webhook:", error);
+        
+        // Show error message and offer to continue with fallback
+        toast.error("Failed to analyze image", {
+          description: "Would you like to continue with estimated values?",
+          action: {
+            label: "Continue",
+            onClick: () => {
+              // Use fallback data
+              const fallbackData = {
+                name: "Unknown Food",
+                calories: 250,
+                carbs: 30,
+                protein: 15,
+                fats: 10,
+                description: "This is an estimated analysis as we couldn't process your image."
+              };
+              
+              navigate("/results", { 
+                state: { 
+                  result: {
+                    ...fallbackData,
+                    image: imagePreview
+                  }
+                } 
+              });
+            }
           }
-        } 
-      });
+        });
+      }
       
     } catch (error) {
       console.error("Error analyzing image:", error);
